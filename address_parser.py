@@ -1,11 +1,17 @@
 # -*- coding: utf-8 -*-
+import sys
+import locale
+from os import path 
 
 try:
     from osgeo import ogr, osr,  gdal
 except ImportError:
     import ogr, osr,  gdal
-    
-from os import path 
+
+#global vars
+_fs_encoding = sys.getfilesystemencoding()
+_message_encoding = locale.getdefaultlocale()[1]
+
 
 class AddressParser():
 
@@ -24,7 +30,7 @@ class AddressParser():
                 
         while feat is not None:
             addr = "Москва, " + feat['addr_v']
-            print(feat['uik'])
+            #print(feat['uik'])
             
             if not addr:
                 feat = layer.GetNextFeature()
@@ -42,11 +48,11 @@ class AddressParser():
            
             #remove region
             if len(comp)>0:
-                 c = unicode(comp[0],"utf-8").lower().strip()
-                 exclude = [u'башкортостан', u'адыгея', u'татарстан', u'карачаево-черкесия', 
-                                   u'кабардино-балкария', u'удмуртия', u'чечня', u'северная осетия']
-                 if c.count(u'область') or c.count(u'обл.') or c.count(u'край') or c.count(u'республика') or c.count(u' ао') or (c in exclude):
-                     comp.remove(comp[0])
+                c = unicode(comp[0],"utf-8").lower().strip()
+                exclude = [u'башкортостан', u'адыгея', u'татарстан', u'карачаево-черкесия', 
+                           u'кабардино-балкария', u'удмуртия', u'чечня', u'северная осетия']
+                if c.count(u'область') or c.count(u'обл.') or c.count(u'край') or c.count(u'республика') or c.count(u' ао') or (c in exclude):
+                    comp.remove(comp[0])
                  
             #remove district
             if len(comp)>0:

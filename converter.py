@@ -1,13 +1,13 @@
+import sys
+import locale
+from os import path
+
 try:
     from osgeo import ogr, osr,  gdal
 except ImportError:
     import ogr, osr,  gdal
 
-import sys
-import locale
-from os import path
-
-
+#global vars
 _fs_encoding = sys.getfilesystemencoding()
 _message_encoding = locale.getdefaultlocale()[1]
 

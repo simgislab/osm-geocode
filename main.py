@@ -38,9 +38,7 @@ def main(args):
         print "\t Parse address..."
         addr_parser.parse(shape_path)
         print "\t Geocode..."
-        geocoder.process(shape_path)
-        
-
+        geocoder.process(shape_path, thread_count = 5)
 
 if __name__=="__main__":
     args = sys.argv[ 1: ]

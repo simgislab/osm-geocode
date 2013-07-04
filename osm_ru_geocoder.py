@@ -18,26 +18,32 @@
  *                                                                         *
  ***************************************************************************/
 """
+import os
 import json
 import urllib2
 import urllib
-#from qgis.core import QgsPoint 
-#from PyQt4.QtGui import QMessageBox
+import sys
+import locale
+from multiprocessing.pool import ThreadPool
+from multiprocessing import Lock
+
+from progressbar import *
 
 try:
     from osgeo import ogr, osr,  gdal
 except ImportError:
     import ogr, osr,  gdal
-import os
 
-
-
+#global vars
+_fs_encoding = sys.getfilesystemencoding()
+_message_encoding = locale.getdefaultlocale()[1]
 
 
 
 class OsmRuGeocoder():
     url = 'http://openstreetmap.ru/api/search?q='
-
+    _lock = Lock()
+    
     def _construct_search_str(self, region, rayon, city, street, house_number):
         search_str = ''
         if region:
@@ -62,7 +68,6 @@ class OsmRuGeocoder():
             #empty address
             return None
         full_url = unicode(self.url) + unicode(full_addr, "utf-8")
-        #QMessageBox.information(None, "Geocoding debug", full_url)
                 
         f = urllib2.urlopen ( full_url.encode("utf-8") )
         resp_str = unicode( f.read(),  'utf-8')
@@ -146,7 +151,7 @@ class OsmRuGeocoder():
     
     
     #feature processing
-    def process_feature(self, feat, layer, results):
+    def process_feature(self, feat, layer, results, update_func):
 	reg = feat['g_region']
         dist = feat['g_district']
         settl = feat['g_settl']
@@ -161,10 +166,13 @@ class OsmRuGeocoder():
              
         if layer.SetFeature(feat) != 0:
     	    print 'Failed to update feature.'
+    	    
+    	#update progress bar
+    	update_func()
     
     
     #main circle
-    def process(self, sqlite_file):
+    def process(self, sqlite_file, thread_count = 1):
         drv = ogr.GetDriverByName("ESRI Shapefile")
         gdal.ErrorReset()
         data_source = drv.Open(sqlite_file.encode('utf-8'), True)
@@ -183,15 +191,22 @@ class OsmRuGeocoder():
         while feat is not None:
             features.append(feat)
             feat = layer.GetNextFeature()
-        
+
+
+	#prepare progressbar
+	self._p_bar = ProgressBar(widgets = [ Bar('=', '[', ']'), ' ',
+					      Percentage(), ' ',
+					      ETA()]).start()
+	self._p_bar.maxval = len(features)
+	
         #start process
-        from multiprocessing.pool import ThreadPool
-        pf =  lambda x: self.process_feature(x, layer, results)
-        pool = ThreadPool(10)
+        pf =  lambda x: self.process_feature(x, layer, results, self.update_progress)
+        pool = ThreadPool(thread_count)
         pool.map(pf, features, 1)
         pool.close()
         pool.join()
 
+	self._p_bar.finish()
         #close DS's
         data_source.Destroy()
 	
@@ -200,4 +215,8 @@ class OsmRuGeocoder():
         for status in range(-1,5):
             print str.format("\t\t {0}: {1}/{2}", self.geocode_status[status], results.count(status),total)
         print " "
-	
+
+    def update_progress(self):
+	self._lock.acquire()
+	self._p_bar.update(self._p_bar.currval+1)
+	self._lock.release()

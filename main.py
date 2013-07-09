@@ -20,13 +20,16 @@ def argparser_prepare():
                     help='file or directory path for processing')
     parser.add_argument('-t','--threads', type=int, default=1, 
                     help='geocoding threads count')
+    parser.add_argument('-r','--region', type=str, default='RU-MOW',  
+                    help='code of region')
     parser.epilog ='''Samples:
                  %(prog)s /home/someuser/moscow.csv
                  %(prog)s -t 3 /home/someuser/all_uics/
+                 %(prog)s -t 5 -r RU-SPE /home/someuser/saint-pet.csv
                  ''' % {'prog':parser.prog}
     return parser
 
-def process_file(csv_file, thread_count):
+def process_file(csv_file, thread_count, region_code):
     #create instances 
     conv = Converter()
     region_helper = RegionNameHelper()
@@ -39,7 +42,7 @@ def process_file(csv_file, thread_count):
     print "\t Convert to shapefile..."
     conv.processing(csv_file, shape_path)
     print "\t Set region name..."
-    region_helper.set_region_name(shape_path)
+    region_helper.set_region_name(shape_path, region_code)
     #print "\t Set district name..."
     #district_helper.set_district_name(shape_path)
     print "\t Parse address..."
@@ -53,6 +56,12 @@ def main(args):
     parser = argparser_prepare()
     args = parser.parse_args()
     
+    #check args 
+    if args.region not in RegionNameHelper.get_region_codes():
+        print "Invalid argument value! Region code not in list:\n"+RegionNameHelper.get_region_list()
+        return 0
+        
+    
     #get source type
     if os.path.isfile(args.source):
         args.sorce_type = 'file'
@@ -61,12 +70,12 @@ def main(args):
 
     #processing
     if args.sorce_type == 'file':
-        process_file(args.source, args.threads)
+        process_file(args.source, args.threads, args.region)
     else:
         os.chdir(args.source)
         csv_files = glob.glob("*.csv")
         for csv_file in csv_files:
-            process_file(csv_file, args.threads)
+            process_file(csv_file, args.threads, args.region)
 
 if __name__=="__main__":
     args = sys.argv[ 1: ]

@@ -97,12 +97,29 @@ osm_ru_map = {
 }
 
 
-
 class RegionNameHelper():
+    @staticmethod
+    def region_code_exists(region_code):
+        return osm_ru_map.has_key(region_code)
+    
+    @staticmethod
+    def get_region_list():
+        all_codes = ''
+        codes = osm_ru_map.keys()
+        codes.sort()
+        for code in codes:
+            all_codes += code+'\t '+osm_ru_map[code]['osm_ru']+'\n'
+        return all_codes
+    
+    @staticmethod
+    def get_region_codes():
+        return osm_ru_map.keys()
+    
 
-    def set_region_name(self, sqlite_file):
+    def set_region_name(self, sqlite_file, region_code):
         #get region name
-        reg_name = self._get_region_name_by_code(sqlite_file)
+        reg_name = osm_ru_map[region_code]['osm_ru']
+        #self._get_region_name_by_code(sqlite_file)
         
         #set attr for layer
         drv = ogr.GetDriverByName("ESRI Shapefile")
@@ -121,8 +138,6 @@ class RegionNameHelper():
             if layer.SetFeature(feat) != 0:
                 print 'Failed to update feature.'
             feat = layer.GetNextFeature()
-            
-            
        
         #close DS's
         data_source.Destroy()

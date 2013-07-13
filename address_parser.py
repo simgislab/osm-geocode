@@ -29,7 +29,7 @@ class AddressParser():
         feat = layer.GetNextFeature()
                 
         while feat is not None:
-            addr = "Москва, " + feat['addr_v']
+            addr = feat['addr_v']
             #print(feat['uik'])
             
             if not addr:

@@ -41,7 +41,7 @@ _message_encoding = locale.getdefaultlocale()[1]
 
 
 class OsmRuGeocoder():
-    url = 'http://openstreetmap.ru/api/search?q='
+    url = 'http://beta.openstreetmap.ru/api/search?q='
     _lock = Lock()
     
     def _construct_search_str(self, region, rayon, city, street, house_number):
@@ -68,11 +68,25 @@ class OsmRuGeocoder():
             #empty address
             return None
         full_url = unicode(self.url) + unicode(full_addr, "utf-8")
-                
-        f = urllib2.urlopen ( full_url.encode("utf-8") )
+        
+        f = None
+        attempts = 3
+        while attempts > 0:
+    	    try:
+    		f = urllib2.urlopen ( full_url.encode("utf-8") )
+    		attempts = 0
+    	    except:
+    		attempts -= 1
+    		if attempts == 0:
+    		    return None
+
         resp_str = unicode( f.read(),  'utf-8')
-        resp_json = json.loads(resp_str)
-                
+        
+        try:
+    	    resp_json = json.loads(resp_str)
+        except:
+    	    return None
+    	    
         if not resp_json["find"]:
             #0 results
             return None

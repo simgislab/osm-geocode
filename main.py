@@ -9,6 +9,7 @@ from region_name_helper import RegionNameHelper
 from district_name_helper import DistrictNameHelper
 from address_parser import AddressParser
 from osm_ru_geocoder import OsmRuGeocoder
+from structure_checker import DataStructureChecker
 
 def argparser_prepare():
     class PrettyFormatter(argparse.ArgumentDefaultsHelpFormatter, argparse.RawDescriptionHelpFormatter):
@@ -32,6 +33,7 @@ def argparser_prepare():
 def process_file(csv_file, thread_count, region_code):
     #create instances 
     conv = Converter()
+    checker = DataStructureChecker()
     region_helper = RegionNameHelper()
     district_helper = DistrictNameHelper()
     addr_parser = AddressParser()
@@ -39,6 +41,9 @@ def process_file(csv_file, thread_count, region_code):
     
     print "Process " + csv_file + ": "
     shape_path = csv_file.replace('.csv','.shp')
+    print "\t Check input data structure..."
+    if not checker.check(csv_file):
+            return
     print "\t Convert to shapefile..."
     conv.processing(csv_file, shape_path)
     print "\t Set region name..."
@@ -51,7 +56,7 @@ def process_file(csv_file, thread_count, region_code):
     geocoder.process(shape_path, thread_count = thread_count)
 
 
-def main(args):
+def main():
     #parse args
     parser = argparser_prepare()
     args = parser.parse_args()
@@ -60,23 +65,25 @@ def main(args):
     if args.region not in RegionNameHelper.get_region_codes():
         print "Invalid argument value! Region code not in list:\n"+RegionNameHelper.get_region_list()
         return 0
-        
     
     #get source type
+    args.source_type = ''
     if os.path.isfile(args.source):
-        args.sorce_type = 'file'
+        args.source_type = 'file'
     if os.path.isdir(args.source):
-        args.sorce_type = 'dir'
+        args.source_type = 'dir'
 
     #processing
-    if args.sorce_type == 'file':
+    if not args.source_type:
+        print 'Incompatible source type!'
+        return
+    if args.source_type == 'file':
         process_file(args.source, args.threads, args.region)
-    else:
+    if args.source_type == 'dir':
         os.chdir(args.source)
         csv_files = glob.glob("*.csv")
         for csv_file in csv_files:
             process_file(csv_file, args.threads, args.region)
 
 if __name__=="__main__":
-    args = sys.argv[ 1: ]
-    main(args)
+    main()

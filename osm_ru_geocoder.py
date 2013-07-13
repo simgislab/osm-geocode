@@ -43,30 +43,14 @@ _message_encoding = locale.getdefaultlocale()[1]
 class OsmRuGeocoder():
     url = 'http://beta.openstreetmap.ru/api/search?q='
     _lock = Lock()
-    
-    def _construct_search_str(self, region, rayon, city, street, house_number):
-        search_str = ''
-        if region:
-            search_str += region +', '
-        if rayon:
-            search_str += rayon+', '
-        if city:
-            search_str += city+', '
-        if street:
-            search_str += street+', '
-        if house_number:
-            search_str += house_number
-        search_str = search_str.rstrip().rstrip(',')
-        #print(search_str)
-        #import pdb;pdb.set_trace()
-        return search_str
 
-    def _search(self, region, rayon, city, street, house_number):
-        full_addr = self._construct_search_str(region, rayon, city, street, house_number)
+    def _search(self, region, addr):
+        full_addr = region + ', ' + addr
+        #print full_addr
         full_addr = urllib.quote(full_addr)
         if not full_addr:
-            #empty address
-            return None
+            return None #empty address
+        
         full_url = unicode(self.url) + unicode(full_addr, "utf-8")
         
         f = None
@@ -88,91 +72,45 @@ class OsmRuGeocoder():
     	    return None
     	    
         if not resp_json["find"]:
-            #0 results
-            return None
+            return None #0 results
         else:
             #hm... no way to find right result :( weight, addr_type_it, this_poi????
             #now get first
             res0 = resp_json["matches"][0]
             pt = ogr.Geometry( ogr.wkbPoint ) 
             pt.SetPoint_2D( 0,  float(res0["lon"]), float(res0["lat"] ))
-            return pt, res0["display_name"]
+            return pt, res0["display_name"], res0['addr_type']
 
 
 
-    def geocode(self, region, rayon, city, street, house_number):
+    def geocode(self, region, addr):
         #try to search as is
-        res = self._search(region, None, city, street, house_number)  #rayon
+        res = self._search(region, addr)
         if res != None:
-            #status check (magic :)
-            status = 0
-            if not house_number:
-        	status = 1
-            if not street:
-        	status = 2
-            if not city:
-        	status = 3
-            #if not rayon:
-        	#status = 4
-            return status, res
-        
-        #try to search street:
-        res = self._search(region, None, city, street, None) #rayon
-        if res != None:
-            #status check (magic :)
-            status = 1
-            if not street:
-        	status = 2
-            if not city:
-        	status = 3
-            #if not rayon:
-        	#status = 4
-            return status, res
-        
-        #try to search settlement:
-        res = self._search(region, None, city, None, None) #rayon
-        if res != None:
-            #status check (magic :)
-            status = 2
-            if not city:
-        	status = 3
-            #if not rayon:
-        	#status = 4
-            return status, res
-        
-        #try to search district:
-        res = self._search(region, rayon, None, None, None)
-        if res != None:
-            #status check (magic :)
-            status = 3
-            if not rayon:
-        	status = 4
-            return status, res
-        
-        #try to search region:
-        res = self._search(region, None, None, None, None)
-        if res != None:
-            return 4, res
-        
+            status = self.osm_ru_result[res[2]]
+            return status, (res[0], res[1])
+        else:
+    	    while addr.count(','):
+    		addr = addr.rpartition(',')[0]
+    		res = self._search(region, addr)
+    		if res != None:
+        	    status = self.osm_ru_result[res[2]]
+        	    return status, (res[0], res[1])
+
         #hm. wtf?
         pt = ogr.Geometry( ogr.wkbPoint ) 
         pt.SetPoint_2D( 0, 0, 0)
         return -1, (pt, "Not found")
-    
-    
+
     geocode_status = { -1:"Not found", 0:"building", 1:"street", 2:"settlement", 3:"district", 4:"region" }
-    
-    
-    
+    osm_ru_result = { 'not found':-1, 'poi':0, 'housenumber':0, 'street':1, 'city':2, 'village':2, 'district':3, 'region':4 }
+
     #feature processing
     def process_feature(self, feat, layer, results, update_func):
 	reg = feat['g_region']
-        dist = feat['g_district']
-        settl = feat['g_settl']
-        street = feat['g_street']
-        build = feat['g_building']
-            
-        res, (point, text) = self.geocode(reg, dist, settl, street, build) # dist
+	addr = feat['g_addr']
+	
+        res, (point, text) = self.geocode(reg, addr)
         results.append(res)
         feat.SetField("g_geocoded", text.encode('utf-8'))
         feat.SetField("g_status", self.geocode_status[res])
@@ -228,7 +166,6 @@ class OsmRuGeocoder():
 	print "\t Results:"
         for status in range(-1,5):
             print str.format("\t\t {0}: {1}/{2}", self.geocode_status[status], results.count(status),total)
-        print " "
 
     def update_progress(self):
 	self._lock.acquire()

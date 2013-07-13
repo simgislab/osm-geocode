@@ -48,8 +48,6 @@ def process_file(csv_file, thread_count, region_code):
     conv.processing(csv_file, shape_path)
     print "\t Set region name..."
     region_helper.set_region_name(shape_path, region_code)
-    #print "\t Set district name..."
-    #district_helper.set_district_name(shape_path)
     print "\t Parse address..."
     addr_parser.parse(shape_path)
     print "\t Geocode..."

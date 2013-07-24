@@ -47,6 +47,9 @@ def process_file(csv_file, thread_count, region_code):
     print "\t Check tik ids..."
     if not checker.check_tik_ids(csv_file):
             return
+    print "\t Check uik ids..."
+    if not checker.check_uik_ids(csv_file):
+            return
     print "\t Convert to shapefile..."
     conv.processing(csv_file, shape_path)
     print "\t Set region name..."

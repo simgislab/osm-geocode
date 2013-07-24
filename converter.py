@@ -78,17 +78,8 @@ class Converter():
         if out_defs.GetFieldIndex("g_region") < 0:
             if not self.__add_field(output_layer, "g_region", ogr.OFTString,  255):
                 return False
-        if out_defs.GetFieldIndex("g_district") < 0:
-            if not self.__add_field(output_layer, "g_district", ogr.OFTString,  255):
-                return False
-        if out_defs.GetFieldIndex("g_settl") < 0:
-            if not self.__add_field(output_layer, "g_settl", ogr.OFTString,  255):
-                return False
-        if out_defs.GetFieldIndex("g_street") < 0:
-            if not self.__add_field(output_layer, "g_street", ogr.OFTString,  255):
-                return False
-        if out_defs.GetFieldIndex("g_building") < 0:
-            if not self.__add_field(output_layer, "g_building", ogr.OFTString,  255):
+        if out_defs.GetFieldIndex("g_addr") < 0:
+            if not self.__add_field(output_layer, "g_addr", ogr.OFTString,  255):
                 return False
         if out_defs.GetFieldIndex("g_geocoded") < 0:
             if not self.__add_field(output_layer, "g_geocoded", ogr.OFTString,  255):

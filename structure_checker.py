@@ -68,6 +68,21 @@ class DataStructureChecker():
             in_feat = csv_layer.GetNextFeature()
         
         return True
+    
+    def check_addr_v(self, csv_file_path):
+        input_data_source = ogr.Open(csv_file_path.encode('utf-8'))
+        csv_layer = input_data_source[0]
+
+        uik_ids = []
+        in_feat = csv_layer.GetNextFeature()
+        while in_feat is not None:
+            addr = in_feat['addr_v']
+            if not addr:
+                print '\t Invalid uik addr_v! Found null addr_v. uik id = %s' % in_feat['uik']
+                return False
+            in_feat = csv_layer.GetNextFeature()
+        
+        return True
 
         
     def check(self, csv_file_path):

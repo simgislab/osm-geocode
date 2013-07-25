@@ -122,11 +122,16 @@ class RegionNameHelper():
         #self._get_region_name_by_code(sqlite_file)
         
         #set attr for layer
-        drv = ogr.GetDriverByName("ESRI Shapefile")
+        gdal.SetConfigOption("OGR_SQLITE_SYNCHRONOUS", "OFF")
+        gdal.SetConfigOption("OGR_SQLITE_PRAGMA", "journal_mode=OFF,cache_size=100000")
+        
+        drv = ogr.GetDriverByName("SQLite")
         gdal.ErrorReset()
         data_source = drv.Open(sqlite_file.encode('utf-8'), True)
+        data_source.ExecuteSQL("PRAGMA journal_mode=OFF")
+        data_source.ExecuteSQL("PRAGMA cache_size=100000")
         if data_source==None:
-            self.__show_err("Shape file can't be opened!\n" + unicode(gdal.GetLastErrorMsg(), _message_encoding))
+            self.__show_err("SQLite file can't be opened!\n" + unicode(gdal.GetLastErrorMsg(), _message_encoding))
             return
         
         layer = data_source[0]

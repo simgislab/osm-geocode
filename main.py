@@ -39,8 +39,9 @@ def process_file(csv_file, thread_count, region_code):
     addr_parser = AddressParser()
     geocoder = OsmRuGeocoder()
     
+    
     print "Process " + csv_file + ": "
-    shape_path = csv_file.replace('.csv','.shp')
+    sqlite_path = csv_file.replace('.csv','.sqlite')
     print "\t Check input data structure..."
     if not checker.check(csv_file):
             return
@@ -53,14 +54,14 @@ def process_file(csv_file, thread_count, region_code):
     print "\t Check uik addr_v..."
     if not checker.check_addr_v(csv_file):
             return
-    print "\t Convert to shapefile..."
-    conv.processing(csv_file, shape_path)
+    print "\t Convert to sqlite..."
+    conv.processing(csv_file, sqlite_path)
     print "\t Set region name..."
-    region_helper.set_region_name(shape_path, region_code)
+    region_helper.set_region_name(sqlite_path, region_code)
     print "\t Parse address..."
-    addr_parser.parse(shape_path)
+    addr_parser.parse(sqlite_path)
     print "\t Geocode..."
-    geocoder.process(shape_path, thread_count = thread_count)
+    geocoder.process(sqlite_path, thread_count = thread_count)
 
 
 def main():

@@ -125,11 +125,11 @@ class OsmRuGeocoder():
     
     #main circle
     def process(self, sqlite_file, thread_count = 1):
-        drv = ogr.GetDriverByName("ESRI Shapefile")
+        drv = ogr.GetDriverByName("SQLite")
         gdal.ErrorReset()
         data_source = drv.Open(sqlite_file.encode('utf-8'), True)
         if data_source==None:
-            self.__show_err("Shape file can't be opened!\n" + unicode(gdal.GetLastErrorMsg(), _message_encoding))
+            self.__show_err("SQLite file can't be opened!\n" + unicode(gdal.GetLastErrorMsg(), _message_encoding))
             return
         
         layer = data_source[0]

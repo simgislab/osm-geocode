@@ -15,7 +15,7 @@ class Converter():
     def processing(self, csv_file, shape_file):
 
         #prepare output data source
-        drv = ogr.GetDriverByName("ESRI Shapefile")
+        drv = ogr.GetDriverByName("SQLite")
         #check output datasource exists
         if path.exists(shape_file):
             drv.DeleteDataSource(shape_file.encode('utf-8'))

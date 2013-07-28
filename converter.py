@@ -26,6 +26,12 @@ class Converter():
         if output_data_source==None:
             self.__show_err("Output sqlite file can't be created!\n" + unicode(gdal.GetLastErrorMsg(), _message_encoding))
             return
+        
+        #setup fast writing
+        output_data_source.ExecuteSQL('PRAGMA journal_mode=OFF')
+        output_data_source.ExecuteSQL('PRAGMA synchronous=0')
+        output_data_source.ExecuteSQL('PRAGMA cache_size=100000')
+
 
         wgs_sr = osr.SpatialReference()
         wgs_sr.ImportFromEPSG(4326)

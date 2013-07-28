@@ -94,4 +94,6 @@ def main():
             process_file(csv_file, args.threads, args.region)
 
 if __name__=="__main__":
+    #import cProfile
+    #cProfile.run('main()')
     main()

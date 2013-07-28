@@ -121,28 +121,36 @@ class RegionNameHelper():
         reg_name = osm_ru_map[region_code]['osm_ru']
         #self._get_region_name_by_code(sqlite_file)
         
-        #set attr for layer
-        gdal.SetConfigOption("OGR_SQLITE_SYNCHRONOUS", "OFF")
-        gdal.SetConfigOption("OGR_SQLITE_PRAGMA", "journal_mode=OFF,cache_size=100000")
-        
         drv = ogr.GetDriverByName("SQLite")
         gdal.ErrorReset()
         data_source = drv.Open(sqlite_file.encode('utf-8'), True)
-        data_source.ExecuteSQL("PRAGMA journal_mode=OFF")
-        data_source.ExecuteSQL("PRAGMA cache_size=100000")
         if data_source==None:
             self.__show_err("SQLite file can't be opened!\n" + unicode(gdal.GetLastErrorMsg(), _message_encoding))
             return
         
-        layer = data_source[0]
+        #setup fast writing
+        data_source.ExecuteSQL('PRAGMA journal_mode=OFF')
+        data_source.ExecuteSQL('PRAGMA synchronous=0')
+        data_source.ExecuteSQL('PRAGMA cache_size=100000')
         
+        layer = data_source[0]
+
+        #wtf??? if not readin - very slow        
         layer.ResetReading()
+        all_feats = []
         feat = layer.GetNextFeature()
         while feat is not None:
+           all_feats.append(feat)
+           feat = layer.GetNextFeature()
+        
+        #while feat is not None:
+        for feat in all_feats:
             feat.SetField("g_region", reg_name)
+            #print feat['uik'] 
             if layer.SetFeature(feat) != 0:
-                print 'Failed to update feature.'
-            feat = layer.GetNextFeature()
+                print 'Failed to update feature: uik=' + feat['uik']
+            #layer.SetNextByIndex(feat.GetFID())
+            #feat = layer.GetNextFeature()
        
         #close DS's
         data_source.Destroy()

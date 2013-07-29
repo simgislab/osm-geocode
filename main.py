@@ -11,6 +11,7 @@ from address_parser import AddressParser
 from osm_ru_geocoder import OsmRuGeocoder
 from structure_checker import DataStructureChecker
 from add_geom_columns import GeomColumnsExtractor
+from point_shift import PointShift
 
 def argparser_prepare():
     class PrettyFormatter(argparse.ArgumentDefaultsHelpFormatter, argparse.RawDescriptionHelpFormatter):
@@ -40,7 +41,7 @@ def process_file(csv_file, thread_count, region_code):
     addr_parser = AddressParser()
     geocoder = OsmRuGeocoder()
     extractor = GeomColumnsExtractor()
-    
+    shifter = PointShift()
     
     print "Process " + csv_file + ": "
     sqlite_path = csv_file.replace('.csv','.sqlite')
@@ -64,8 +65,8 @@ def process_file(csv_file, thread_count, region_code):
     addr_parser.parse(sqlite_path)
     print "\t Geocode..."
     geocoder.process(sqlite_path, thread_count = thread_count)
-    #print "\t Shift points..."
-    #???
+    print "\t Shift points..."
+    shifter.shift(sqlite_path, )
     print "\t Extract lat long..."
     extractor.extract_columns(sqlite_path)
 

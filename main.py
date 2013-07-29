@@ -25,14 +25,16 @@ def argparser_prepare():
                     help='geocoding threads count')
     parser.add_argument('-r','--region', type=str, default='RU-MOW',  
                     help='code of region')
+    parser.add_argument('-s','--shift-radius', type=float, default=0.00015,  
+                    help='point shifting radius')
     parser.epilog ='''Samples:
-                 %(prog)s /home/someuser/moscow.csv
-                 %(prog)s -t 3 /home/someuser/all_uics/
+                 %(prog)s -r RU-MOW /home/someuser/moscow.csv
+                 %(prog)s -t 3 -r RU-YAR /home/someuser/all_uics/
                  %(prog)s -t 5 -r RU-SPE /home/someuser/saint-pet.csv
                  ''' % {'prog':parser.prog}
     return parser
 
-def process_file(csv_file, thread_count, region_code):
+def process_file(csv_file, thread_count, region_code, shift_radius):
     #create instances 
     conv = Converter()
     checker = DataStructureChecker()
@@ -66,7 +68,7 @@ def process_file(csv_file, thread_count, region_code):
     print "\t Geocode..."
     geocoder.process(sqlite_path, thread_count = thread_count)
     print "\t Shift points..."
-    shifter.shift(sqlite_path, )
+    shifter.shift(sqlite_path, shift_radius)
     print "\t Extract lat long..."
     extractor.extract_columns(sqlite_path)
 
@@ -93,12 +95,12 @@ def main():
         print 'Incompatible source type!'
         return
     if args.source_type == 'file':
-        process_file(args.source, args.threads, args.region)
+        process_file(args.source, args.threads, args.region, args.shift_radius)
     if args.source_type == 'dir':
         os.chdir(args.source)
         csv_files = glob.glob("*.csv")
         for csv_file in csv_files:
-            process_file(csv_file, args.threads, args.region)
+            process_file(csv_file, args.threads, args.region, args.shift_radius)
 
 if __name__=="__main__":
     #import cProfile

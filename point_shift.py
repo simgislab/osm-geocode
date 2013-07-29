@@ -29,7 +29,6 @@ class PointShift():
         data_source.ExecuteSQL('PRAGMA journal_mode=OFF')
         data_source.ExecuteSQL('PRAGMA synchronous=0')
         data_source.ExecuteSQL('PRAGMA cache_size=100000')
-
         
         layer = data_source[0]
         

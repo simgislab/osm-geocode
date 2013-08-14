@@ -170,6 +170,13 @@ class OsmRuGeocoder():
 	print "\t Results:"
         for status in range(-1,5):
             print str.format("\t\t {0}: {1}/{2}", self.geocode_status[status], results.count(status),total)
+        
+        #write stats to file
+        stats = open(sqlite_file + '_stats','w')
+        stats.write("Results:\n")
+        for status in range(-1,5):
+            stats.write(str.format("\t{0}: {1}/{2}\n", self.geocode_status[status], results.count(status),total))
+        
 
     def update_progress(self):
 	self._lock.acquire()

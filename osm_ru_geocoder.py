@@ -44,10 +44,10 @@ class OsmRuGeocoder():
     url = 'http://beta.openstreetmap.ru/api/search?q='
     _lock = Lock()
 
-    def _search(self, region, addr):
-        full_addr = region + ', ' + addr
+    def _search(self, addr):
+        #full_addr = region + ', ' + addr
         #print full_addr
-        full_addr = urllib.quote(full_addr)
+        full_addr = urllib.quote(addr)
         if not full_addr:
             return None #empty address
         
@@ -85,14 +85,15 @@ class OsmRuGeocoder():
 
     def geocode(self, region, addr):
         #try to search as is
-        res = self._search(region, addr)
+        addr = region + ', ' + addr
+        res = self._search(addr)
         if res != None:
             status = self.osm_ru_result[res[2]]
             return status, (res[0], res[1])
         else:
     	    while addr.count(','):
     		addr = addr.rpartition(',')[0]
-    		res = self._search(region, addr)
+    		res = self._search(addr)
     		if res != None:
         	    status = self.osm_ru_result[res[2]]
         	    return status, (res[0], res[1])

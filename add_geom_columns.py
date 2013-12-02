@@ -11,12 +11,11 @@
 """
 import sys
 import locale
-from os import path 
 
 try:
     from osgeo import ogr, osr,  gdal
 except ImportError:
-    import ogr, osr,  gdal
+    import ogr, osr, gdal
 
 #global vars
 _fs_encoding = sys.getfilesystemencoding()
@@ -28,11 +27,10 @@ class GeomColumnsExtractor():
     lonColumnName = 'lon'
 
     def extract_columns(self, sqlite_file):
-       
         drv = ogr.GetDriverByName("SQLite")
         gdal.ErrorReset()
         data_source = drv.Open(sqlite_file.encode('utf-8'), True)
-        if data_source==None:
+        if data_source is None:
             self.__show_err("SQLite file can't be opened!\n" + unicode(gdal.GetLastErrorMsg(), _message_encoding))
             return
         
@@ -41,18 +39,17 @@ class GeomColumnsExtractor():
         data_source.ExecuteSQL('PRAGMA synchronous=0')
         data_source.ExecuteSQL('PRAGMA cache_size=100000')
 
-        
         layer = data_source[0]
         
         #add fields
         out_defs = layer.GetLayerDefn()
         if out_defs.GetFieldIndex(self.latColumnName) < 0:
             if not self.__add_field(layer, self.latColumnName, ogr.OFTReal):
-                self.__show_err( self.tr("Unable to create a field %1!").arg(self.latColumnName))
+                self.__show_err("Unable to create a field %s!" % self.latColumnName)
                 return
         if out_defs.GetFieldIndex(self.lonColumnName) < 0:
             if not self.__add_field(layer, self.lonColumnName, ogr.OFTReal):
-                self.__show_err( self.tr("Unable to create a field %1!").arg(self.lonColumnName))
+                self.__show_err("Unable to create a field %s!" % self.lonColumnName)
                 return
         
         all_feats = []
@@ -77,12 +74,12 @@ class GeomColumnsExtractor():
         field_def = ogr.FieldDefn(field_name, field_type)
         if field_len:
             field_def.SetWidth(field_len)
-        if layer.CreateField (field_def) != 0:
-            self.__show_err( self.tr("Unable to create a field %1!").arg(field_def.GetNameRef()))
+        if layer.CreateField(field_def) != 0:
+            self.__show_err("Unable to create a field %s!" % field_def.GetNameRef())
             return False
         else:
             return True
     
-    def __show_err(self,  msg):
+    @staticmethod
+    def __show_err(msg):
         print "Error: " + msg
-        

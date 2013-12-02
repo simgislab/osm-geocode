@@ -13,12 +13,11 @@
 import sys
 import locale
 import math
-from os import path 
 
 try:
     from osgeo import ogr, osr,  gdal
 except ImportError:
-    import ogr, osr,  gdal
+    import ogr, osr, gdal
 
 #global vars
 _fs_encoding = sys.getfilesystemencoding()
@@ -27,13 +26,12 @@ _message_encoding = locale.getdefaultlocale()[1]
 
 class PointShift():
     
-    def shift(self, sqlite_file, shift_rad = 0.00015, rotate = False):
-
-        drv = ogr.GetDriverByName("SQLite")
+    def shift(self, sqlite_file, shift_rad=0.00015, rotate=False):
+        drv = ogr.GetDriverByName('SQLite')
         gdal.ErrorReset()
         data_source = drv.Open(sqlite_file.encode('utf-8'), True)
-        if data_source==None:
-            self.__show_err("SQLite file can't be opened!\n" + unicode(gdal.GetLastErrorMsg(), _message_encoding))
+        if data_source is None:
+            self.__show_err('SQLite file can\'t be opened!\n' + unicode(gdal.GetLastErrorMsg(), _message_encoding))
             return
         
         #setup fast writing
@@ -51,10 +49,9 @@ class PointShift():
             geom = feat.GetGeometryRef()
             wkt = str(geom.ExportToWkt())
             if wkt not in d:
-                d[wkt] = [feat] #[feat.GetFID()] 
+                d[wkt] = [feat]  # [feat.GetFID()]
             else:
-                d[wkt].append(feat) #(feat.GetFID())
-  
+                d[wkt].append(feat)  # (feat.GetFID())
             feat = layer.GetNextFeature()
         
         #shift
@@ -81,18 +78,14 @@ class PointShift():
                     new_geom = ogr.Geometry(ogr.wkbPoint)
                     new_geom.SetPoint(0, geom.GetX() + dx, geom.GetY() + dy)
 
-
                     feat.SetGeometry(new_geom)
                     if layer.SetFeature(feat) != 0:
                         print 'Failed to update feature.'
                     
                     current_angle += angle_step 
-        
-            
+
         #close DS's
         data_source.Destroy()
-        
-    
-    def __show_err(self,  msg):
-        print "Error: " + msg
 
+    def __show_err(self,  msg):
+        print 'Error: ' + msg

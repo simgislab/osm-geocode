@@ -11,12 +11,11 @@
 """
 import sys
 import locale
-from os import path 
 
 try:
     from osgeo import ogr, osr,  gdal
 except ImportError:
-    import ogr, osr,  gdal
+    import ogr, osr, gdal
 
 #global vars
 _fs_encoding = sys.getfilesystemencoding()
@@ -30,7 +29,7 @@ class AddressParser():
         drv = ogr.GetDriverByName("SQLite")
         gdal.ErrorReset()
         data_source = drv.Open(sqlite_file.encode('utf-8'), True)
-        if data_source==None:
+        if data_source is None:
             self.__show_err("SQLite file can't be opened!\n" + unicode(gdal.GetLastErrorMsg(), _message_encoding))
             return
         
@@ -39,7 +38,6 @@ class AddressParser():
         data_source.ExecuteSQL('PRAGMA synchronous=0')
         data_source.ExecuteSQL('PRAGMA cache_size=100000')
 
-        
         layer = data_source[0]
         all_feats = []
         layer.ResetReading()
@@ -52,19 +50,15 @@ class AddressParser():
             addr = feat['addr_v']
             if not addr:
                 continue
-            addr = unicode(addr,"utf-8").replace(u'п.','').replace(u'с.','').replace(u'г.','').strip()
-            addr = addr.replace(u'ул.','').replace(u'пр.','').replace(u'пр-т','').replace(u'пер.','').strip()
-            addr = addr.replace(u'д.','').replace(u'дом','').strip()
+            addr = unicode(addr, 'utf-8').replace(u'п.', '').replace(u'с.', '').replace(u'г.', '').strip()
+            addr = addr.replace(u'ул.', '').replace(u'пр.', '').replace(u'пр-т', '').replace(u'пер.', '').strip()
+            addr = addr.replace(u'д.', '').replace(u'дом', '').strip()
 
             feat.SetField("g_addr", addr.encode('utf-8'))
             if layer.SetFeature(feat) != 0:
                 print 'Failed to update feature.'
-            
         #close DS's
         data_source.Destroy()
 
-    
-    
     def __show_err(self,  msg):
         print "Error: " + msg
-        

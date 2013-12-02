@@ -16,7 +16,7 @@ import locale
 try:
     from osgeo import ogr, osr,  gdal
 except ImportError:
-    import ogr, osr,  gdal
+    import ogr, osr, gdal
 
 #global vars
 _fs_encoding = sys.getfilesystemencoding()
@@ -37,7 +37,6 @@ class DataStructureChecker():
             print 'Input source can\'t be opened: ' + unicode(gdal.GetLastErrorMsg(), _message_encoding)
         return True
 
-    
     def check_tik_ids(self, csv_file_path, check_tik_names):
         input_data_source = ogr.Open(csv_file_path.encode('utf-8'))
         csv_layer = input_data_source[0]
@@ -53,7 +52,8 @@ class DataStructureChecker():
                 name = in_feat['tik']
                 if id in tik_ids:
                     if tik_ids[id] != name:
-                        print '\t Invalid tik ids! Found: id = %s, name = %s and id = %s, name = %s' % (id, tik_ids[id], id, name)
+                        print '\t Invalid tik ids! Found: id = %s, name = %s and id = %s, name = %s' % \
+                              (id, tik_ids[id], id, name)
                         return False
                 else:
                     tik_ids[id] = name
@@ -73,13 +73,12 @@ class DataStructureChecker():
                 print '\t Invalid uik ids! Found null uik id. addr_v = %s' % in_feat['addr_v']
                 return False
             
-            if uik_ids.count(id)>0:
-                print '\t Invalid uik ids! Found several records with uik id = %s' % (id)
+            if uik_ids.count(id) > 0:
+                print '\t Invalid uik ids! Found several records with uik id = %s' % id
                 return False
             else:
                 uik_ids.append(id)
             in_feat = csv_layer.GetNextFeature()
-        
         return True
     
     def check_addr_v(self, csv_file_path):
@@ -94,10 +93,8 @@ class DataStructureChecker():
                 print '\t Invalid uik addr_v! Found null addr_v. uik id = %s' % in_feat['uik']
                 return False
             in_feat = csv_layer.GetNextFeature()
-        
         return True
 
-        
     def check(self, csv_file_path, check_tik_names):
         input_data_source = ogr.Open(csv_file_path.encode('utf-8'))
         csv_layer = input_data_source[0]

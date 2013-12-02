@@ -17,12 +17,11 @@ from os import path
 try:
     from osgeo import ogr, osr,  gdal
 except ImportError:
-    import ogr, osr,  gdal
+    import ogr, osr, gdal
 
 #global vars
 _fs_encoding = sys.getfilesystemencoding()
 _message_encoding = locale.getdefaultlocale()[1]
-
 
 osm_ru_map = {
     'RU-ALT': {'dd': ['Алтайский край'],                    'osm_ru': 'Алтайский край'},
@@ -50,11 +49,11 @@ osm_ru_map = {
     'RU-KIR': {'dd': ['Кировская обл.'],                    'osm_ru': 'Кировская область'},
     'RU-KDA': {'dd': ['Краснодарский край'],                'osm_ru': 'Краснодарский край'},
     'RU-KL':  {'dd': ['Калмыкия'],                          'osm_ru': 'Республика Калмыкия'},
-    'RU-KC':  {'dd': ['Карачаево-Черкесская республика', 'Карачаево-Черкесия', 'Карачаево-Черкессия'], 'osm_ru': 'Карачаево-Черкесская республика'},
-    'RU-KEM': {'dd': ['Кемеровская область', 'Кемеровская обл.'],                                      'osm_ru': 'Кемеровская область'},
-    'RU-KGD': {'dd': ['Калининградская область', 'Калининградская обл.'],                              'osm_ru': 'Калининградская область'},
+    'RU-KC':  {'dd': ['Карачаево-Черкесская республика'],   'osm_ru': 'Карачаево-Черкесская республика'},
+    'RU-KEM': {'dd': ['Кемеровская область', 'Кемеровская обл.'],           'osm_ru': 'Кемеровская область'},
+    'RU-KGD': {'dd': ['Калининградская область', 'Калининградская обл.'],   'osm_ru': 'Калининградская область'},
     'RU-KK':  {'dd': ['Хакасия'],                            'osm_ru': 'Республика Хакасия'},
-    'RU-KLU': {'dd': ['Калужская область', 'Калужская обл.'],'osm_ru': 'Калужская область'},
+    'RU-KLU': {'dd': ['Калужская область', 'Калужская обл.'],               'osm_ru': 'Калужская область'},
     'RU-KO':  {'dd': ['Республика Коми', 'республика Коми'], 'osm_ru': 'Республика Коми'},
     'RU-KOS': {'dd': ['Костромская обл.'],                   'osm_ru': 'Костромская область'},
     'RU-KR':  {'dd': ['Карелия', 'республика Карелия'],      'osm_ru': 'Республика Карелия'},
@@ -62,8 +61,8 @@ osm_ru_map = {
     'RU-KYA': {'dd': ['Красноярский край'],                  'osm_ru': 'Красноярский край'},
     'RU-LEN': {'dd': ['Ленинградская обл.'],                 'osm_ru': 'Ленинградская область'},
     'RU-LIP': {'dd': ['Липецкая обл.'],                      'osm_ru': 'Липецкая область'},
-    'RU-MAG': {'dd': ['Магаданская область', 'Магаданская обл.'], 'osm_ru': 'Магаданская область'},
-    'RU-ME':  {'dd': ['республика Марий Эл', 'Марий Эл', 'Республика Марий Эл', 'республикаМарий Эл'], 'osm_ru': 'Марий Эл'},
+    'RU-MAG': {'dd': ['Магаданская область', 'Магаданская обл.'],           'osm_ru': 'Магаданская область'},
+    'RU-ME':  {'dd': ['республика Марий Эл', 'Марий Эл'],    'osm_ru': 'Марий Эл'},
     'RU-MO':  {'dd': ['Мордовия', 'Республика Мордовия'],    'osm_ru': 'Республика Мордовия'},
     'RU-MOS': {'dd': ['Московская обл.'],                    'osm_ru': 'Московская область'},
     'RU-MOW': {'dd': ['Москва'],                             'osm_ru': 'Москва'},
@@ -80,7 +79,7 @@ osm_ru_map = {
     'RU-PSK': {'dd': ['Псковская обл.'],                     'osm_ru': 'Псковская область'},
     'RU-ROS': {'dd': ['Ростовская обл.'],                    'osm_ru': 'Ростовская область'},
     'RU-RYA': {'dd': ['Рязанская обл.'],                     'osm_ru': 'Рязанская область'},
-    'RU-SA':  {'dd': ['Республика Саха', 'Саха (Якутия)', 'Республика Саха (Якутия)'], 'osm_ru': 'Республика Саха (Якутия)'},
+    'RU-SA':  {'dd': ['Республика Саха', 'Республика Саха (Якутия)'],       'osm_ru': 'Республика Саха (Якутия)'},
     'RU-SAK': {'dd': ['Сахалинская обл.'],                   'osm_ru': 'Сахалинская область'},
     'RU-SAM': {'dd': ['Самарская обл.'],                     'osm_ru': 'Самарская область'},
     'RU-SAR': {'dd': ['Саратовская обл.'],                   'osm_ru': 'Саратовская область'},
@@ -102,16 +101,16 @@ osm_ru_map = {
     'RU-ULY': {'dd': ['Ульяновская обл.'],                   'osm_ru': 'Ульяновская область'},
     'RU-YAR': {'dd': ['Ярославская обл.'],                   'osm_ru': 'Ярославская область'},
     'RU-TVE': {'dd': ['Тверская обл.'],                      'osm_ru': 'Тверская область'},
-    'RU-VLA': {'dd': ['Владимирская обл.', 'Владимирская область'], 'osm_ru': 'Владимирская область'},
-    'RU-TYU': {'dd': ['Тюменская обл.'],                            'osm_ru': 'Тюменская область'},
-    'RU-ZAB': {'dd': ['Агинский Бурятский АО', 'Читинская обл.'],   'osm_ru': 'Забайкальский край'}
+    'RU-VLA': {'dd': ['Владимирская обл.', 'Владимирская область'],         'osm_ru': 'Владимирская область'},
+    'RU-TYU': {'dd': ['Тюменская обл.'],                                    'osm_ru': 'Тюменская область'},
+    'RU-ZAB': {'dd': ['Агинский Бурятский АО', 'Читинская обл.'],           'osm_ru': 'Забайкальский край'}
 }
 
 
 class RegionNameHelper():
     @staticmethod
     def region_code_exists(region_code):
-        return osm_ru_map.has_key(region_code)
+        return region_code in osm_ru_map
     
     @staticmethod
     def get_region_list():
@@ -126,17 +125,16 @@ class RegionNameHelper():
     def get_region_codes():
         return osm_ru_map.keys()
     
-
     def set_region_name(self, sqlite_file, region_code):
         #get region name
         reg_name = osm_ru_map[region_code]['osm_ru']
         #self._get_region_name_by_code(sqlite_file)
         
-        drv = ogr.GetDriverByName("SQLite")
+        drv = ogr.GetDriverByName('SQLite')
         gdal.ErrorReset()
         data_source = drv.Open(sqlite_file.encode('utf-8'), True)
-        if data_source==None:
-            self.__show_err("SQLite file can't be opened!\n" + unicode(gdal.GetLastErrorMsg(), _message_encoding))
+        if data_source is None:
+            self.__show_err('SQLite file can\'t be opened!\n' + unicode(gdal.GetLastErrorMsg(), _message_encoding))
             return
         
         #setup fast writing
@@ -146,17 +144,17 @@ class RegionNameHelper():
         
         layer = data_source[0]
 
-        #wtf??? if not readin - very slow        
+        #wtf??? if not reading - very slow
         layer.ResetReading()
         all_feats = []
         feat = layer.GetNextFeature()
         while feat is not None:
-           all_feats.append(feat)
-           feat = layer.GetNextFeature()
+            all_feats.append(feat)
+            feat = layer.GetNextFeature()
         
         #while feat is not None:
         for feat in all_feats:
-            feat.SetField("g_region", reg_name)
+            feat.SetField('g_region', reg_name)
             #print feat['uik'] 
             if layer.SetFeature(feat) != 0:
                 print 'Failed to update feature: uik=' + feat['uik']
@@ -166,12 +164,11 @@ class RegionNameHelper():
         #close DS's
         data_source.Destroy()
 
-    
-    def _get_region_name_by_code(self, sqlite_file):
+    @staticmethod
+    def _get_region_name_by_code(sqlite_file):
         layer_name = path.splitext(path.basename(sqlite_file))[0]
         return osm_ru_map[layer_name.upper()]['osm_ru']
-        
-    
-    def __show_err(self,  msg):
-        print "Error: " + msg
-        
+
+    @staticmethod
+    def __show_err(msg):
+        print 'Error: ' + msg

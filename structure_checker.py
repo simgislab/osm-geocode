@@ -12,7 +12,8 @@ _message_encoding = locale.getdefaultlocale()[1]
 
     
 class DataStructureChecker():
-    req_fields = ['tik',  'uik',  'addr_v', 'tik_id']
+    req_fields = ['uik',  'addr_v', 'tik_id']
+    add_fields = ['tik']
     
     def check_csv_exists(self, csv_file_path):
         input_data_source = ogr.Open(csv_file_path.encode('utf-8'))
@@ -25,7 +26,7 @@ class DataStructureChecker():
         return True
 
     
-    def check_tik_ids(self, csv_file_path):
+    def check_tik_ids(self, csv_file_path, check_tik_names):
         input_data_source = ogr.Open(csv_file_path.encode('utf-8'))
         csv_layer = input_data_source[0]
 
@@ -33,17 +34,17 @@ class DataStructureChecker():
         in_feat = csv_layer.GetNextFeature()
         while in_feat is not None:
             id = in_feat['tik_id']
-            name = in_feat['tik']
             if not id:
-                    print '\t Invalid tik ids! Found null id. name = %s' % (name)
+                    print '\t Invalid tik ids! Found null id!'
                     return False
-            
-            if tik_ids.has_key(id):
-                if tik_ids[id] != name:
-                    print '\t Invalid tik ids! Found: id = %s, name = %s and id = %s, name = %s' % (id, tik_ids[id], id, name)
-                    return False
-            else:
-                tik_ids[id] = name
+            if check_tik_names:
+                name = in_feat['tik']
+                if id in tik_ids:
+                    if tik_ids[id] != name:
+                        print '\t Invalid tik ids! Found: id = %s, name = %s and id = %s, name = %s' % (id, tik_ids[id], id, name)
+                        return False
+                else:
+                    tik_ids[id] = name
             in_feat = csv_layer.GetNextFeature()
         
         return True
@@ -85,7 +86,7 @@ class DataStructureChecker():
         return True
 
         
-    def check(self, csv_file_path):
+    def check(self, csv_file_path, check_tik_names):
         input_data_source = ogr.Open(csv_file_path.encode('utf-8'))
         csv_layer = input_data_source[0]
 
@@ -100,5 +101,10 @@ class DataStructureChecker():
             if req not in field_names:
                 print '\t Invalid input data structure! Field %s not found!' % req
                 return False
-        
+
+        if check_tik_names:
+            for add_req in self.add_fields:
+                if add_req not in field_names:
+                    print '\t Invalid input data structure! Additional field %s not found!' % add_req
+                    return False
         return True

@@ -1,14 +1,5 @@
+# -*- coding: utf-8 -*-
 """
-/***************************************************************************
- RuGeocoder
-                                 A QGIS plugin
- Geocode your csv files to shp
-                             -------------------
-        begin                : 2012-02-20
-        copyright            : (C) 2012 by Nikulin Evgeniy
-        email                : nikulin.e at gmail
- ***************************************************************************/
-
 /***************************************************************************
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -18,6 +9,7 @@
  *                                                                         *
  ***************************************************************************/
 """
+
 import os
 import json
 import urllib2

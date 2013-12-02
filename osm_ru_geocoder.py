@@ -31,7 +31,9 @@ _message_encoding = locale.getdefaultlocale()[1]
 
 
 class OsmRuGeocoder():
-    url = 'http://beta.openstreetmap.ru/api/search?q='
+    url = 'http://openstreetmap.ru/api/search?q='  # stable url
+    #url = 'http://beta.openstreetmap.ru/api/search?q='  # beta url
+
     _lock = Lock()
 
     def _search(self, addr):

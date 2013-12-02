@@ -9,23 +9,23 @@
  *                                                                         *
  ***************************************************************************/
 """
-
+import locale
 try:
     from osgeo import ogr, osr,  gdal
 except ImportError:
-    import ogr, osr,  gdal
-    
-from os import path 
+    import ogr, osr, gdal
+
+_message_encoding = locale.getdefaultlocale()[1]
+
 
 class DistrictNameHelper():
 
     def set_district_name(self, sqlite_file):
-       
         #set attr for layer
         drv = ogr.GetDriverByName("SQLite")
         gdal.ErrorReset()
         data_source = drv.Open(sqlite_file.encode('utf-8'), True)
-        if data_source==None:
+        if data_source is None:
             self.__show_err("SQLite file can't be opened!\n" + unicode(gdal.GetLastErrorMsg(), _message_encoding))
             return
         
@@ -42,8 +42,5 @@ class DistrictNameHelper():
         #close DS's
         data_source.Destroy()
 
-    
-    
     def __show_err(self,  msg):
         print "Error: " + msg
-        

@@ -42,6 +42,8 @@ def argparser_prepare():
                         help='point shifting radius')
     parser.add_argument('-c', '--check-tik-names', action='store_true',
                         help='check tik id and names matching')
+    parser.add_argument('-p', '--persistently', action='store_true',
+                        help='persistently try to geocode with one thread and ')
     parser.epilog = '''Samples:
                  %(prog)s -r RU-MOW /home/someuser/moscow.csv
                  %(prog)s -t 3 -r RU-YAR /home/someuser/all_uics/
@@ -50,7 +52,7 @@ def argparser_prepare():
     return parser
 
 
-def process_file(csv_file, thread_count, region_code, shift_radius, check_tik_names):
+def process_file(csv_file, thread_count, region_code, shift_radius, check_tik_names, persistently):
     #create instances 
     conv = Converter()
     checker = DataStructureChecker()
@@ -82,7 +84,7 @@ def process_file(csv_file, thread_count, region_code, shift_radius, check_tik_na
     print "\t Parse address..."
     addr_parser.parse(sqlite_path)
     print "\t Geocode..."
-    geocoder.process(sqlite_path, thread_count=thread_count)
+    geocoder.process(sqlite_path, thread_count=thread_count, persistently=persistently)
     print "\t Shift points..."
     shifter.shift(sqlite_path, shift_radius)
     print "\t Extract lat long..."
@@ -111,12 +113,12 @@ def main():
         print 'Incompatible source type!'
         return
     if args.source_type == 'file':
-        process_file(args.source, args.threads, args.region, args.shift_radius, args.check_tik_names)
+        process_file(args.source, args.threads, args.region, args.shift_radius, args.check_tik_names, args.persistently)
     if args.source_type == 'dir':
         os.chdir(args.source)
         csv_files = glob.glob("*.csv")
         for csv_file in csv_files:
-            process_file(csv_file, args.threads, args.region, args.shift_radius, args.check_tik_names)
+            process_file(csv_file, args.threads, args.region, args.shift_radius, args.check_tik_names, args.persistently)
 
 if __name__ == "__main__":
     #import cProfile

@@ -11,6 +11,7 @@
 """
 
 import json
+from time import sleep
 import urllib2
 import urllib
 import sys
@@ -36,7 +37,7 @@ class OsmRuGeocoder():
 
     _lock = Lock()
 
-    def _search(self, addr):
+    def _search(self, addr, persistently):
         #full_addr = region + ', ' + addr
         #print full_addr
         full_addr = urllib.quote(addr)
@@ -52,6 +53,8 @@ class OsmRuGeocoder():
                 f = urllib2.urlopen(full_url.encode('utf-8'))
                 attempts = 0
             except:
+                if persistently:
+                    sleep(1)
                 attempts -= 1
                 if attempts == 0:
                     return None
@@ -73,17 +76,17 @@ class OsmRuGeocoder():
             pt.SetPoint_2D(0,  float(res0['lon']), float(res0['lat']))
             return pt, res0['display_name'], res0['addr_type']
 
-    def geocode(self, region, addr):
+    def geocode(self, region, addr, persistently):
         #try to search as is
         addr = region + ', ' + addr
-        res = self._search(addr)
+        res = self._search(addr, persistently)
         if res is not None:
             status = self.osm_ru_result[res[2]]
             return status, (res[0], res[1])
         else:
             while addr.count(','):
                 addr = addr.rpartition(',')[0]
-                res = self._search(addr)
+                res = self._search(addr, persistently)
                 if res is not None:
                     status = self.osm_ru_result[res[2]]
                     return status, (res[0], res[1])
@@ -98,11 +101,11 @@ class OsmRuGeocoder():
                      'village': 2, 'district': 3, 'region': 4}
 
     #feature processing
-    def process_feature(self, feat, layer, results, update_func):
+    def process_feature(self, feat, layer, results, update_func, persistently):
         reg = feat['g_region']
         addr = feat['g_addr']
 
-        res, (point, text) = self.geocode(reg, addr)
+        res, (point, text) = self.geocode(reg, addr, persistently)
         results.append(res)
         feat.SetField('g_geocoded', text.encode('utf-8'))
         feat.SetField('g_status', self.geocode_status[res])
@@ -115,7 +118,7 @@ class OsmRuGeocoder():
         update_func()
 
     #main circle
-    def process(self, sqlite_file, thread_count=1):
+    def process(self, sqlite_file, thread_count=1, persistently=False):
         drv = ogr.GetDriverByName('SQLite')
         gdal.ErrorReset()
         data_source = drv.Open(sqlite_file.encode('utf-8'), True)
@@ -145,8 +148,12 @@ class OsmRuGeocoder():
                                   Percentage(), ' ', ETA()]).start()
         self._p_bar.maxval = len(features)
 
+        #get mode
+        if persistently:
+            thread_count = 1
+
         #start process
-        pf = lambda x: self.process_feature(x, layer, results, self.update_progress)
+        pf = lambda x: self.process_feature(x, layer, results, self.update_progress, persistently)
         pool = ThreadPool(thread_count)
         pool.map(pf, features, 1)
         pool.close()

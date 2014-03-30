@@ -74,7 +74,9 @@ class OsmRuGeocoder():
             res0 = resp_json['matches'][0]
             pt = ogr.Geometry(ogr.wkbPoint)
             pt.SetPoint_2D(0,  float(res0['lon']), float(res0['lat']))
-            return pt, res0['display_name'], res0['addr_type']
+
+            osm_id = res0['osm_id'].split(',')[0].replace('{', '').replace('}', '').replace('w', '').replace('n', '').replace('r', '')
+            return pt, res0['display_name'], res0['addr_type'], long(osm_id)
 
     def geocode(self, region, addr, persistently):
         #try to search as is
@@ -82,19 +84,19 @@ class OsmRuGeocoder():
         res = self._search(addr, persistently)
         if res is not None:
             status = self.osm_ru_result[res[2]]
-            return status, (res[0], res[1])
+            return status, (res[0], res[1], res[3])
         else:
             while addr.count(','):
                 addr = addr.rpartition(',')[0]
                 res = self._search(addr, persistently)
                 if res is not None:
                     status = self.osm_ru_result[res[2]]
-                    return status, (res[0], res[1])
+                    return status, (res[0], res[1], res[3])
 
         #hm. wtf?
         pt = ogr.Geometry(ogr.wkbPoint)
         pt.SetPoint_2D(0, 0, 0)
-        return -1, (pt, 'Not found')
+        return -1, (pt, 'Not found', -1)
 
     geocode_status = {-1: 'Not found', 0: 'building', 1: 'street', 2: 'settlement', 3: 'district', 4: 'region'}
     osm_ru_result = {'not found': -1, 'poi': 0, 'housenumber': 0, 'street': 1, 'city': 2,
@@ -105,10 +107,11 @@ class OsmRuGeocoder():
         reg = feat['g_region']
         addr = feat['g_addr']
 
-        res, (point, text) = self.geocode(reg, addr, persistently)
+        res, (point, text, osm_id) = self.geocode(reg, addr, persistently)
         results.append(res)
         feat.SetField('g_geocoded', text.encode('utf-8'))
         feat.SetField('g_status', self.geocode_status[res])
+        feat.SetField('g_osm_id', osm_id)
         feat.SetGeometry(point)
              
         if layer.SetFeature(feat) != 0:

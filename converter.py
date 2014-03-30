@@ -106,6 +106,9 @@ class Converter():
         if out_defs.GetFieldIndex("g_status") < 0:
             if not self.__add_field(output_layer, "g_status", ogr.OFTString,  100):
                 return False
+        if out_defs.GetFieldIndex("g_osm_id") < 0:
+            if not self.__add_field(output_layer, "g_osm_id", ogr.OFTInteger,  100):
+                return False
         return True
 
     def __add_field(self,  layer, field_name,   field_type=ogr.OFTString,  field_len=None):

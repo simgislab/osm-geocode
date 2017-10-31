@@ -42,16 +42,22 @@ class Converter():
             return
         
         #setup fast writing
-        output_data_source.ExecuteSQL('PRAGMA journal_mode=OFF')
-        output_data_source.ExecuteSQL('PRAGMA synchronous=0')
-        output_data_source.ExecuteSQL('PRAGMA cache_size=100000')
+        sql_lyr = output_data_source.ExecuteSQL('PRAGMA journal_mode=OFF')
+        if sql_lyr is not None:
+            output_data_source.ReleaseResultSet(sql_lyr)
+        sql_lyr = output_data_source.ExecuteSQL('PRAGMA synchronous=0')
+        if sql_lyr is not None:
+            output_data_source.ReleaseResultSet(sql_lyr)
+        sql_lyr = output_data_source.ExecuteSQL('PRAGMA cache_size=100000')
+        if sql_lyr is not None:
+            output_data_source.ReleaseResultSet(sql_lyr)
+        #gdal.SetConfigOption('OGR_SQLITE_SYNCHRONOUS', 'OFF')
 
         wgs_sr = osr.SpatialReference()
         wgs_sr.ImportFromEPSG(4326)
 
         layer_name = path.splitext(path.basename(shape_file))[0]
-        output_layer = output_data_source.CreateLayer(layer_name.encode('utf-8'), srs=wgs_sr, geom_type=ogr.wkbPoint,
-                                                      options=['ENCODING=UTF-8'])
+        output_layer = output_data_source.CreateLayer(layer_name.encode('utf-8'), srs=wgs_sr, geom_type=ogr.wkbPoint)
 
         #copy fields
         input_data_source = ogr.Open(csv_file.encode('utf-8'))
@@ -89,8 +95,8 @@ class Converter():
             in_feat = csv_layer.GetNextFeature()
         
         #close DS's
-        output_data_source.Destroy()
-        input_data_source.Destroy()
+        output_data_source = None
+        input_data_source = None
 
     def add_additional_fields(self,  output_layer):
         out_defs = output_layer.GetLayerDefn()

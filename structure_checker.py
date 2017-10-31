@@ -24,8 +24,8 @@ _message_encoding = locale.getdefaultlocale()[1]
 
     
 class DataStructureChecker():
-    req_fields = ['uik',  'addr_v', 'tik_id']
-    add_fields = ['tik']
+    req_fields = ['addr_v']
+    add_fields = []
     
     def check_csv_exists(self, csv_file_path):
         input_data_source = ogr.Open(csv_file_path.encode('utf-8'))

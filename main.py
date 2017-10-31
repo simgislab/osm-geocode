@@ -40,8 +40,6 @@ def argparser_prepare():
                         help='code of region')
     parser.add_argument('-s', '--shift-radius', type=float, default=0.00015,
                         help='point shifting radius')
-    parser.add_argument('-c', '--check-tik-names', action='store_true',
-                        help='check tik id and names matching')
     parser.add_argument('-p', '--persistently', action='store_true',
                         help='persistently try to geocode with one thread and ')
     parser.epilog = '''Samples:
@@ -52,7 +50,7 @@ def argparser_prepare():
     return parser
 
 
-def process_file(csv_file, thread_count, region_code, shift_radius, check_tik_names, persistently):
+def process_file(csv_file, thread_count, region_code, shift_radius, persistently):
     #create instances 
     conv = Converter()
     checker = DataStructureChecker()
@@ -66,14 +64,6 @@ def process_file(csv_file, thread_count, region_code, shift_radius, check_tik_na
     print "Process " + csv_file + ": "
     sqlite_path = csv_file.replace('.csv', '.sqlite')
     print "\t Check input data structure..."
-    if not checker.check(csv_file, check_tik_names):
-            return
-    print "\t Check tik ids..."
-    if not checker.check_tik_ids(csv_file, check_tik_names):
-            return
-    print "\t Check uik ids..."
-    if not checker.check_uik_ids(csv_file):
-            return
     print "\t Check uik addr_v..."
     if not checker.check_addr_v(csv_file):
             return
@@ -113,7 +103,7 @@ def main():
         print 'Incompatible source type!'
         return
     if args.source_type == 'file':
-        process_file(args.source, args.threads, args.region, args.shift_radius, args.check_tik_names, args.persistently)
+        process_file(args.source, args.threads, args.region, args.shift_radius, args.persistently)
     if args.source_type == 'dir':
         os.chdir(args.source)
         csv_files = glob.glob("*.csv")

@@ -129,9 +129,15 @@ class OsmRuGeocoder():
             self.__show_err('SQLite file can\'t be opened!\n' + unicode(gdal.GetLastErrorMsg(), _message_encoding))
             return
         
-        data_source.ExecuteSQL('PRAGMA journal_mode=OFF')
-        data_source.ExecuteSQL('PRAGMA synchronous=0')
-        data_source.ExecuteSQL('PRAGMA cache_size=100000')
+        sql_lyr = data_source.ExecuteSQL('PRAGMA journal_mode=OFF')
+        if sql_lyr is not None:
+            data_source.ReleaseResultSet(sql_lyr)
+        sql_lyr = data_source.ExecuteSQL('PRAGMA synchronous=0')
+        if sql_lyr is not None:
+            data_source.ReleaseResultSet(sql_lyr)
+        sql_lyr = data_source.ExecuteSQL('PRAGMA cache_size=100000')
+        if sql_lyr is not None:
+            data_source.ReleaseResultSet(sql_lyr)
         
         layer = data_source[0]
         layer.ResetReading()
